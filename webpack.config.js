@@ -2,7 +2,6 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
   entry: './src/js/app.js',
@@ -17,10 +16,10 @@ module.exports = {
   module: {
     rules: [{
       test: /\.css$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: 'css-loader'
-      })
+      use: [
+        { loader: "style-loader" },
+        { loader: "css-loader" }
+      ]
     },
     {
       test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'
@@ -36,8 +35,6 @@ module.exports = {
       filename: 'index.html'
     }),
     new UglifyJsPlugin(),
-    new CleanWebpackPlugin(['dist']),
-    // 分离css
-    new ExtractTextPlugin('style.css')
+    new CleanWebpackPlugin(['dist'])
   ]
 }

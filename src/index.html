@@ -4,40 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>球球大作战</title>
+    <title>poly</title>
 </head>
 <body>
 	<div id="game" data-status="start">
 		<!-- 画板 -->
 		<canvas id="canvas" width="1600" height="1200"></canvas>
-		<div class="game-planel">
-			<!-- 开始前 -->
-			<section class="game-start">
-				<h1 class="section-title">球球大作战</h1>
-				<!-- 玩家颜色 -->
-				我的颜色：
-				<select class="section-myColor">
-					<option value="red">红色</option>
-					<option value="green">绿色</option>
-				</select><br>
-				敌人数量：
-				<select class="section-aiNum">
-					<option value="20">20</option>
-					<option value="30">30</option>
-					<option value="50">50</option>
-				</select><br>
-				<label for="myName">名字：</label><input type="text" id="myName"><br>
-				<button class="section-button">开始游戏</button>
-			</section>
-			<!-- 游戏中 -->
-			<section class="game-playing">
-				<p class="score">得分：<span>0</span></p>
-				<ul class="ranking-list"></ul>
-			</section>
-			<!-- 游戏结束 -->
-			<section class="game-over"></section>
-		</div>
-	</div>
-	<audio src="http://fjdx.sc.chinaz.com/Files/DownLoad/sound1/201603/7017.mp3" id="bg-audio" loop></audio>
+    </div>
+    <script src="./js/app.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@ class Game {
     this.mouseStartX = 0
     this.mouseStartY = 0
     this.isDraggable = false // 是否在拖动中
-    this.currDraggableNum = 0 // 拖拽的第几个
+    this.currDraggableNum = 0 // 当前拖拽的第几个
     
     this.initObject()
     this.event()

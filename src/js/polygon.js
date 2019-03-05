@@ -8,11 +8,13 @@ class Polygon {
 
   init (polygonDom) {
     this.polygonDom = polygonDom
+    this.initPoints = Object.assign(this.polygonDom.animatedPoints) // 初始化时的顶点坐标
     this.externalRectangle()
   }
 
   /**
-   * 获取外接矩形的坐标和宽高
+   * 获取外接矩形的信息
+   * @description 调整dom的顶点信息后需要手动调用此方法更新
    */
   externalRectangle () {
     const animatedPoints = this.polygonDom.animatedPoints
@@ -35,6 +37,36 @@ class Polygon {
     this.y = minY
     this.width = maxX - minX
     this.height = maxY - minY
+    this.color = this.polygonDom.outerHTML.match(/fill:\s?(.+);/)[1]
+    this.center = {
+      x: eval(polygonXArr.join('+')) / animatedPoints.length,
+      y: eval(polygonYArr.join('+')) / animatedPoints.length
+    }
+  }
+
+  /**
+   * 暴露DOM方法
+   */
+  setAttribute (key, value) {
+    this.polygonDom.setAttribute(key, value)
+  }
+
+  /**
+   * 将顶点坐标拼接成html标签属性上的格式
+   * @param {number} offsetX 水平方向偏移量
+   * @param {number} offsetY 竖直方向偏移量
+   * @return {string}
+   */
+  getAnimatedPointsToStrign (points, offsetX = 0, offsetY = 0) {
+    let initPoints = points || this.initPoints
+    let pointStr = ''
+
+    for (let i = 0; i < initPoints.length; i++) {
+      let point = initPoints[i]
+      pointStr += `${point.x + offsetX},${point.y + offsetY} `
+    }
+
+    return pointStr
   }
 }
 

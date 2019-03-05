@@ -44,7 +44,7 @@ class Game {
       let offsetX = e.changedTouches[0].pageX - this.mouseStartX
       let offsetY = e.changedTouches[0].pageY - this.mouseStartY
       
-      this.moveActivePolygon(offsetX, offsetY)
+      this.moveActivePolygon(offsetX * 1.2, offsetY * 1.2)
     })
 
     this.polygonItem.forEach((item, index) => {

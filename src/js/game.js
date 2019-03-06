@@ -26,6 +26,7 @@ class Game {
     this.mouseStartY = 0
     this.isDraggable = false // 是否在拖动中
     this.currDraggableNum = 0 // 当前拖拽的第几个
+    this.textIndexDomArr = []  // 序号dom集合
     
     this.initObject()
     this.event()
@@ -103,18 +104,20 @@ class Game {
   }
 
   initPicture () {
-    let htmlText = []
-
     this.picturePolygon[0].style = 'stroke:#000000;fill:none;'
     this.picturePolygon[54].style = 'stroke:#000000;fill:none;'
     this.picturePolygon[59].style = 'stroke:#000000;fill:none;'
     this.picturePolygon[72].style = 'stroke:#000000;fill:none;'
 
     this.polygonArr.forEach((item, index) => {
-      htmlText.push(`<text x="${item.center.x - 5}" y="${item.center.y + 3}">${index + 1}</text>`)
-    })
+      let text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      text.setAttribute('x', `${item.center.x - 5}`)
+      text.setAttribute('y', `${item.center.y + 3}`)
+      text.innerHTML = `${index + 1}`
 
-    this.picture.innerHTML += htmlText.join('')
+      this.textIndexDomArr.push(text)
+      this.picture.appendChild(text)
+    })
   }
 
   /**
@@ -135,6 +138,8 @@ class Game {
   }
 
   showActivePolygon () {
+    // 隐藏panel中被拖动的碎片
+    this.polygonItem[this.currDraggableNum].style.visibility = 'hidden'
     this.polygonActive.setAttribute('style', `fill:${this.polygonArr[this.currDraggableNum].color};`)
     this.polygonActive.setAttribute('points', this.polygonActive.getAnimatedPointsToStrign(this.pictureStartPoint[this.currDraggableNum]))
     this.picture.appendChild(this.polygonActive.polygonDom)
@@ -144,10 +149,12 @@ class Game {
    * 碰撞检测
    */
   collisionDetection () {
-    if (Util.rectCollisioDetection(this.polygonArr[this.currDraggableNum], this.polygonActive)) {
-      console.log('碰撞')
+    let currPolygon = this.polygonArr[this.currDraggableNum]
+    if (Util.rectCollisioDetection(currPolygon, this.polygonActive)) {
+      currPolygon.polygonDom.setAttribute('style', `stroke:none;fill:${currPolygon.color};`)
+      this.picture.removeChild(this.textIndexDomArr[this.currDraggableNum])
     } else {
-      console.log('未碰撞')
+    this.polygonItem[this.currDraggableNum].style.visibility = 'visible'
     }
   }
 }

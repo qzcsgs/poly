@@ -43,7 +43,12 @@ class Game {
     })
 
     this.waitPolygonAndText.forEach((item, index) => {
-      item.polygon.addEventListener('touchstart', (e) => {
+      const onTouchEnd = (e) => {
+        e.preventDefault()
+        this.isDraggable = false
+        this.collisionDetection()
+      }
+      const onTouchStart = (e) => {
         e.preventDefault()
         this.isDraggable = true
         this.currDraggableNum = index
@@ -52,13 +57,12 @@ class Game {
         this.mouseStartY = e.touches[0].pageY
 
         this.waitPolygonAndText[index].text.style.visibility = 'hidden'  // 隐藏编号
-      })
-
-      item.polygon.addEventListener('touchend', (e) => {
-        e.preventDefault()
-        this.isDraggable = false
-        this.collisionDetection()
-      })
+      }
+      
+      item.polygon.addEventListener('touchstart', onTouchStart)
+      item.text.addEventListener('touchstart', onTouchStart)
+      item.polygon.addEventListener('touchend', onTouchEnd)
+      item.text.addEventListener('touchend', onTouchEnd)
     })
   }
 
@@ -138,7 +142,7 @@ class Game {
     
     for (let i = 0; i < startPoint.length; i++) {
       let points = startPoint[i]
-      pointStr += `${points.x + offsetX},${points.y + offsetY} `
+      pointStr += `${points.x + offsetX},${points.y + offsetY - 100} ` // y轴多减50保证polygon在手指上方
     }
 
     this.waitPolygonAndText[this.currDraggableNum].polygon.setAttribute('points', pointStr)
@@ -158,7 +162,7 @@ class Game {
       this.picture.removeChild(this.waitPolygonAndText[this.currDraggableNum].polygon.polygonDom)  // 删除拖动的polygon
     } else {
       // reset
-      this.moveActivePolygon(0, 0)
+      this.moveActivePolygon(0, 100)
       this.waitPolygonAndText[this.currDraggableNum].text.style.visibility = 'visible'
     }
   }

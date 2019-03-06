@@ -84,7 +84,6 @@ class Game {
    * 初始化picture
    */
   initPicture () {
-    this.initWaitPolygonAndText()
     // 根据屏幕比例设置viewBox
     this.picture.setAttribute('viewBox', `0 0 ${config.viewBoxWidth} ${config.viewBoxHeight}`)
 
@@ -99,6 +98,8 @@ class Game {
       this.textIndexDomArr.push(text)
       this.picture.appendChild(text)
     })
+
+    this.initWaitPolygonAndText()
   }
 
   /**
@@ -106,15 +107,16 @@ class Game {
    */
   initWaitPolygonAndText () {
     this.polygonArr.forEach((item, index) => {
-      const animatedPoints = item.polygonDom.animatedPoints
+      const animatedPoints = item.getAnimatedPoints()
       let str = ''
-      for (let i = 0; i < animatedPoints.length; i++) {
-        const elem = animatedPoints[i]
+
+      animatedPoints.forEach(elem => {
         // 1.将碎片重置到0,0
         // 2.加上屏幕高度 - 自身高度 - 底边距 = y
         // 3.加上屏幕左边距 + n倍的140 = x
         str += `${elem.x - item.x + (index * 140) + config.paddingLeft},${elem.y - item.y + config.viewBoxHeight - item.height - config.paddingBottom} `
-      }
+      })
+     
       // polygon
       let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
       polygon.setAttribute('style', `fill:${item.color};`)
@@ -139,12 +141,10 @@ class Game {
   moveActivePolygon (offsetX, offsetY) {
     let pointStr = ''
     let startPoint = this.waitPolygonAndText[this.currDraggableNum].polygon.initPoints
-    
-    for (let i = 0; i < startPoint.length; i++) {
-      let points = startPoint[i]
-      pointStr += `${points.x + offsetX},${points.y + offsetY - 100} ` // y轴多减50保证polygon在手指上方
-    }
 
+    startPoint.forEach(item => {
+      pointStr += `${item.x + offsetX},${item.y + offsetY - 100} ` // y轴多减50保证polygon在手指上方
+    })
     this.waitPolygonAndText[this.currDraggableNum].polygon.setAttribute('points', pointStr)
     this.waitPolygonAndText[this.currDraggableNum].polygon.externalRectangle()  // 更新外接矩形的信息
   }

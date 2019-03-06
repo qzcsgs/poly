@@ -14,6 +14,7 @@ class Game {
     // 获取相应元素
     this.picture = document.querySelector('#picture')
     this.picturePolygon = document.querySelectorAll('#picture polygon')
+    this.end = document.querySelector('.end')
 
     this.mouseStartX = 0
     this.mouseStartY = 0
@@ -21,6 +22,7 @@ class Game {
     this.currDraggableNum = 0 // 当前拖拽的第几个
     this.textIndexDomArr = []  // 序号dom集合
     this.waitPolygonAndText = [] // 等待着被拖动的polygon和text
+    this.spliceCount = 0
 
     this.initObject()
     this.event()
@@ -143,7 +145,7 @@ class Game {
     let startPoint = this.waitPolygonAndText[this.currDraggableNum].polygon.initPoints
 
     startPoint.forEach(item => {
-      pointStr += `${item.x + offsetX},${item.y + offsetY - 100} ` // y轴多减50保证polygon在手指上方
+      pointStr += `${item.x + offsetX},${item.y + offsetY - 100} ` // y轴多减100保证polygon在手指上方
     })
     this.waitPolygonAndText[this.currDraggableNum].polygon.setAttribute('points', pointStr)
     this.waitPolygonAndText[this.currDraggableNum].polygon.externalRectangle()  // 更新外接矩形的信息
@@ -160,11 +162,18 @@ class Game {
       currPolygon.polygonDom.setAttribute('style', `stroke:none;fill:${currPolygon.color};`)  // 涂色
       this.picture.removeChild(this.textIndexDomArr[this.currDraggableNum]) // 删除编号
       this.picture.removeChild(this.waitPolygonAndText[this.currDraggableNum].polygon.polygonDom)  // 删除拖动的polygon
+
+      this.spliceCount++
+      this.spliceCount === this.polygonArr.length ? this.gameOver() : ''
     } else {
       // reset
       this.moveActivePolygon(0, 100)
       this.waitPolygonAndText[this.currDraggableNum].text.style.visibility = 'visible'
     }
+  }
+
+  gameOver () {
+    this.end.classList.add('active')
   }
 }
 

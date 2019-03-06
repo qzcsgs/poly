@@ -8,8 +8,16 @@ class Polygon {
 
   init (polygonDom) {
     this.polygonDom = polygonDom
-    this.initPoints = Object.assign(this.polygonDom.animatedPoints) // 初始化时的顶点坐标
+    this.initPoints()
     this.externalRectangle()
+  }
+
+  initPoints () {
+    const animatedPoints = this.polygonDom.animatedPoints
+    this.initPoints = [] // 初始化时的顶点坐标
+    for (let i = 0; i < animatedPoints.length; i++) {
+      this.initPoints.push({ x: animatedPoints[i].x, y: animatedPoints[i].y })
+    }
   }
 
   /**
@@ -49,6 +57,9 @@ class Polygon {
    */
   setAttribute (key, value) {
     this.polygonDom.setAttribute(key, value)
+  }
+  addEventListener (name, func, bool = true) {
+    this.polygonDom.addEventListener(name, func, bool)
   }
 
   /**

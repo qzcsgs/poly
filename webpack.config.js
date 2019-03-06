@@ -2,6 +2,7 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
+const ip = require('ip').address()
 
 module.exports = {
   entry: './src/js/app.js',
@@ -11,7 +12,8 @@ module.exports = {
   },
   // server
   devServer: {
-    contentBase: __dirname + '/dist'
+    contentBase: __dirname + '/dist',
+    host: ip
   },
   module: {
     rules: [{

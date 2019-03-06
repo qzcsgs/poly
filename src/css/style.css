@@ -28,9 +28,6 @@ body {
 	bottom: 50px;
 	width: 100%;
 }
-/* .polygon-item {
-	margin: 0 20px;
-} */
 .polygon-item svg {
 	width: 100%;
 }
@@ -58,5 +55,8 @@ text {
 }
 
 @media screen and (orientation: landscape) {
- 
+	.wrap .start {
+		width: 60%;
+		margin: 0 auto;
+	}
 }

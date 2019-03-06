@@ -1,7 +1,9 @@
+const start = document.querySelector('.start')
+
 export default {
   viewBoxWidth: 500,
-  viewBoxHeight: 500 / (document.body.offsetWidth / document.body.offsetHeight),
-  screenOffset: 500 / document.body.offsetWidth,
+  viewBoxHeight: 500 / (start.offsetWidth / start.offsetHeight),
+  screenOffset: 500 / start.offsetWidth,
   paddingLeft: 10,
   paddingBottom: 50
 }

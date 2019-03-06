@@ -1,7 +1,7 @@
 export default {
   viewBoxWidth: 500,
-  viewBoxHeight: 500 / (screen.availWidth / screen.availHeight),
-  screenOffset: 500 / screen.availWidth,
+  viewBoxHeight: 500 / (document.body.offsetWidth / document.body.offsetHeight),
+  screenOffset: 500 / document.body.offsetWidth,
   paddingLeft: 10,
   paddingBottom: 50
 }

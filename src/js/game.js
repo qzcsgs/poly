@@ -1,6 +1,7 @@
 import Polygon from './polygon'
 import Util from './util'
 import config from './config'
+import lottie from './lottie'
 
 /**
  * 游戏类
@@ -173,7 +174,16 @@ class Game {
   }
 
   gameOver () {
-    this.end.classList.add('active')
+    lottie.loadAnimation({
+      container: document.getElementById('end-animation'),
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: 'data.json'
+    })
+    setTimeout(() => {
+      this.end.classList.add('active')
+    }, 1000)
   }
 }
 

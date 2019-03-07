@@ -33,7 +33,11 @@ body {
 text {
 	font-size: 12px;
 }
-
+#end-animation {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
 
 .wrap .end {
 	position: absolute;

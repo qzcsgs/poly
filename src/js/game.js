@@ -16,6 +16,7 @@ class Game {
     this.picture = document.querySelector('#picture')
     this.picturePolygon = document.querySelectorAll('#picture polygon')
     this.end = document.querySelector('.end')
+    this.stageAnimation = document.getElementById('stage-animation')
 
     this.mouseStartX = 0
     this.mouseStartY = 0
@@ -164,7 +165,8 @@ class Game {
       currPolygon.polygonDom.setAttribute('style', `stroke:none;fill:${currPolygon.color};`)  // 涂色
       this.picture.removeChild(this.textIndexDomArr[this.currDraggableNum]) // 删除编号
       this.picture.removeChild(this.waitPolygonAndText[this.currDraggableNum].polygon.polygonDom)  // 删除拖动的polygon
-
+      this.showStageAnimation()
+      
       this.spliceCount++
       this.spliceCount === this.polygonArr.length ? this.gameOver() : ''
     } else {
@@ -174,14 +176,34 @@ class Game {
     }
   }
 
+  showStageAnimation () {
+    this.stageAnimation.innerHTML = ''
+    let currPolygon = this.polygonArr[this.currDraggableNum]
+    this.stageAnimation.style.width = (100 / config.screenOffset) + 'px'
+    this.stageAnimation.style.height = (100 / config.screenOffset) + 'px'
+    this.stageAnimation.style.top = currPolygon.y / config.screenOffset + 'px'
+    this.stageAnimation.style.left = currPolygon.x / config.screenOffset + 'px'
+    this.stageAnimation.style.transform = `translate(-${((100 - currPolygon.width) / 2) / config.screenOffset}px, -${((100 - currPolygon.height) / 2) / config.screenOffset}px)`
+    
+
+    lottie.loadAnimation({
+      container: document.getElementById('stage-animation'),
+      renderer: 'svg',
+      loop: false,
+      autoplay: true,
+      path: 'stage.json'
+    })
+  }
+
   gameOver () {
     lottie.loadAnimation({
       container: document.getElementById('end-animation'),
       renderer: 'svg',
       loop: true,
       autoplay: true,
-      path: 'data.json'
+      path: 'success.json'
     })
+
     setTimeout(() => {
       this.end.classList.add('active')
     }, 1000)

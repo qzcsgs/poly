@@ -33,12 +33,14 @@ body {
 text {
 	font-size: 12px;
 }
+#stage-animation {
+	position: absolute;
+}
 #end-animation {
 	position: absolute;
 	top: 10%;
 	left: 50%;
 	transform: translateX(-50%);
-	
 }
 
 .wrap .end {

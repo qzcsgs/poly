@@ -60,6 +60,7 @@ class Game {
         this.mouseStartY = e.touches[0].pageY
 
         this.waitPolygonAndText[index].text.style.visibility = 'hidden'  // 隐藏编号
+        this.moveActivePolygon(0, 0)
       }
       
       item.polygon.addEventListener('touchstart', onTouchStart)

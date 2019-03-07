@@ -5,5 +5,5 @@ export default {
   viewBoxHeight: 500 / (start.offsetWidth / start.offsetHeight),
   screenOffset: 500 / start.offsetWidth,
   paddingLeft: 10,
-  paddingBottom: 50
+  paddingBottom: 80
 }

@@ -17,6 +17,8 @@ class Game {
     this.picturePolygon = document.querySelectorAll('#picture polygon')
     this.end = document.querySelector('.end')
     this.stageAnimation = document.getElementById('stage-animation')
+    this.mask = document.querySelector('.mask')
+    this.maskImg = document.querySelector('.start img')
 
     this.mouseStartX = 0
     this.mouseStartY = 0
@@ -25,6 +27,7 @@ class Game {
     this.textIndexDomArr = []  // 序号dom集合
     this.waitPolygonAndText = [] // 等待着被拖动的polygon和text
     this.spliceCount = 0
+    this.gameState = 'startBefore'
 
     this.initObject()
     this.event()
@@ -34,6 +37,10 @@ class Game {
    * 游戏事件
    */
   event () {
+    window.onresize = () => {
+      location.reload()
+    }
+
     document.addEventListener('touchmove', (e) => {
       if (!this.isDraggable) {
         return false
@@ -44,6 +51,17 @@ class Game {
       let offsetY = e.changedTouches[0].pageY - this.mouseStartY
       // 鼠标偏移量 * svg相对于屏幕的缩放比 = polygon相对于初始坐标的偏移量
       this.moveActivePolygon(offsetX * config.screenOffset, offsetY * config.screenOffset)
+    })
+
+    this.mask.addEventListener('click', () => {
+      this.gameState = 'playing'
+      this.mask.style.display = 'none'
+      this.maskImg.style.display = 'none'
+      setTimeout(() => {
+        this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
+        this.waitPolygonAndText[0].text.style.visibility = 'visible'
+        this.moveActivePolygon(0, 100)
+      }, 30);
     })
 
     this.waitPolygonAndText.forEach((item, index) => {
@@ -83,6 +101,7 @@ class Game {
       new Polygon(this.picturePolygon[72])
     ]
     this.initPicture()
+    this.playGuideAnimation()
   }
 
   /**
@@ -138,6 +157,54 @@ class Game {
     })
   }
 
+  playGuideAnimation () {
+    if (this.gameState === 'playing') { return }
+
+    this.maskImg.style.top = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset + 'px'
+    this.maskImg.style.left = (this.waitPolygonAndText[0].polygon.x + 30) / config.screenOffset + 'px'
+    this.waitPolygonAndText[0].text.style.visibility = 'hidden'  // 隐藏编号
+
+    const distance = (this.waitPolygonAndText[0].polygon.y - this.polygonArr[0].y) / config.screenOffset  // px
+    const startY = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset // px
+    const len = 40 // 时长1s，每20ms一次，共50次
+    const stageY = distance / len // 每次运动stage个距离
+
+    setTimeout(() => {
+      this.guideAnimationTimer(len, startY, stageY, '-')
+    }, 1000)
+  }
+
+  guideAnimationTimer (count, startY, stageY, type) {
+    if (this.gameState === 'playing') { return }
+    setTimeout(() => {
+      if (type === '+') {
+        startY = (this.polygonArr[0].y + 45) / config.screenOffset
+        this.maskImg.style.top = startY + (40 - count) * stageY + 'px'
+      } else {
+        this.maskImg.style.top = startY - (40 - count) * stageY + 'px'
+        this.moveActivePolygon(10, 100 - ((40 - count) * stageY) * config.screenOffset)
+      }
+
+      if (count === 0 && type === '-') {
+        // 到达顶部
+        this.polygonArr[0].setAttribute('style', 'stroke:none;fill:none;')
+
+        setTimeout(() => {
+          this.guideAnimationTimer(40, startY, stageY, '+')
+        }, 500)
+        return
+      } else if (count === 0 && type === '+') {
+        // 到达底部
+        this.moveActivePolygon(0, 100)
+        this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
+        this.playGuideAnimation()
+        return
+      }
+      count--
+      this.guideAnimationTimer(count, startY, stageY, type)
+    }, 20)
+  }
+
   /**
    * 移动被拖动的polygon
    * @param {number} offsetX 水平方向偏移量
@@ -179,12 +246,23 @@ class Game {
   showStageAnimation () {
     this.stageAnimation.innerHTML = ''
     let currPolygon = this.polygonArr[this.currDraggableNum]
+
     this.stageAnimation.style.width = (100 / config.screenOffset) + 'px'
     this.stageAnimation.style.height = (100 / config.screenOffset) + 'px'
     this.stageAnimation.style.top = currPolygon.y / config.screenOffset + 'px'
     this.stageAnimation.style.left = currPolygon.x / config.screenOffset + 'px'
-    this.stageAnimation.style.transform = `translate(-${((100 - currPolygon.width) / 2) / config.screenOffset}px, -${((100 - currPolygon.height) / 2) / config.screenOffset}px)`
-    
+    // 通用的方法
+    // this.stageAnimation.style.transform = `translate(-${((100 - currPolygon.width) / 2) / config.screenOffset}px, -${((100 - currPolygon.height) / 2) / config.screenOffset}px)`
+
+    if (this.currDraggableNum === 0) {
+      this.stageAnimation.style.transform = `translate(${10 / config.screenOffset}px, -${10 / config.screenOffset}px)`
+    } else if (this.currDraggableNum === 1) {
+      this.stageAnimation.style.transform = `translate(-${25 / config.screenOffset}px, -${30 / config.screenOffset}px)`
+    } else if (this.currDraggableNum === 2) {
+      this.stageAnimation.style.transform = `translate(-${30 / config.screenOffset}px, -${35 / config.screenOffset}px)`
+    } else if (this.currDraggableNum === 3) {
+      this.stageAnimation.style.transform = `translate(-${28 / config.screenOffset}px, -${30 / config.screenOffset}px)`
+    }
 
     lottie.loadAnimation({
       container: document.getElementById('stage-animation'),

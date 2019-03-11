@@ -19,6 +19,7 @@ class Game {
     this.stageAnimation = document.getElementById('stage-animation')
     this.startImg = document.querySelector('.start img')
     this.wrapTips = document.querySelector('.wrap .tips')
+    this.downloadImg = document.querySelector('.download img')
 
     this.mouseStartX = 0
     this.mouseStartY = 0
@@ -55,7 +56,6 @@ class Game {
       if (!this.isDraggable) {
         return false
       }
-      e.preventDefault()
 
       let offsetX = e.changedTouches[0].pageX - this.mouseStartX
       let offsetY = e.changedTouches[0].pageY - this.mouseStartY
@@ -65,12 +65,10 @@ class Game {
 
     this.waitPolygonAndText.forEach((item, index) => {
       const onTouchEnd = (e) => {
-        e.preventDefault()
         this.isDraggable = false
         this.collisionDetection()
       }
       const onTouchStart = (e) => {
-        e.preventDefault()
         this.isDraggable = true
         this.currDraggableNum = index
 
@@ -305,6 +303,7 @@ class Game {
     })
 
     setTimeout(() => {
+      this.downloadImg.src = this.startImg.src
       this.end.classList.add('active')
     }, 1000)
   }

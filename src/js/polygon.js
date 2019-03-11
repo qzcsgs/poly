@@ -66,9 +66,6 @@ class Polygon {
   setAttribute (key, value) {
     this.polygonDom.setAttribute(key, value)
   }
-  addEventListener (name, func, bool = true) {
-    this.polygonDom.addEventListener(name, func, bool)
-  }
 }
 
 export default Polygon

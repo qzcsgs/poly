@@ -26,8 +26,7 @@ class Game {
     this.currDraggableNum = 0 // 当前拖拽的第几个
     this.textIndexDomArr = []  // 序号dom集合
     this.waitPolygonAndText = [] // 等待着被拖动的polygon和text
-    this.spliceCount = 0
-    this.gameState = 'startBefore'
+    this.pictureHTML = this.picture.innerHTML
 
     this.initObject()
     this.event()
@@ -37,11 +36,9 @@ class Game {
    * 游戏事件
    */
   event () {
-    window.onresize = () => {
-      location.reload()
-    }
+    window.onresize = () => this.restart()
 
-    document.addEventListener('touchmove', (e) => {
+    document.ontouchmove = (e) => {
       if (!this.isDraggable) {
         return false
       }
@@ -50,19 +47,19 @@ class Game {
       let offsetX = e.changedTouches[0].pageX - this.mouseStartX
       let offsetY = e.changedTouches[0].pageY - this.mouseStartY
       // 鼠标偏移量 * svg相对于屏幕的缩放比 = polygon相对于初始坐标的偏移量
-      this.moveActivePolygon(offsetX * config.screenOffset, offsetY * config.screenOffset)
-    })
+      this.moveActivePolygon(offsetX * config.screenOffset(), offsetY * config.screenOffset())
+    }
 
-    this.mask.addEventListener('click', () => {
-      this.gameState = 'playing'
+    this.mask.onclick = () => {
+      config.gameState = 'playing'
       this.mask.style.display = 'none'
       this.maskImg.style.display = 'none'
       setTimeout(() => {
         this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
         this.waitPolygonAndText[0].text.style.visibility = 'visible'
         this.moveActivePolygon(0, 100)
-      }, 30);
-    })
+      }, 30)
+    }
 
     this.waitPolygonAndText.forEach((item, index) => {
       const onTouchEnd = (e) => {
@@ -82,10 +79,10 @@ class Game {
         this.moveActivePolygon(0, 0)
       }
       
-      item.polygon.addEventListener('touchstart', onTouchStart)
-      item.text.addEventListener('touchstart', onTouchStart)
-      item.polygon.addEventListener('touchend', onTouchEnd)
-      item.text.addEventListener('touchend', onTouchEnd)
+      item.polygon.polygonDom.ontouchstart = onTouchStart
+      item.text.ontouchstart = onTouchStart
+      item.polygon.polygonDom.ontouchend = onTouchEnd
+      item.text.ontouchend = onTouchEnd
     })
   }
 
@@ -109,18 +106,19 @@ class Game {
    */
   initPicture () {
     // 根据屏幕比例设置viewBox
-    this.picture.setAttribute('viewBox', `0 0 ${config.viewBoxWidth} ${config.viewBoxHeight}`)
+    this.picture.setAttribute('viewBox', `0 0 ${config.viewBoxWidth} ${config.viewBoxHeight()}`)
 
     this.polygonArr.forEach((item, index) => {
-      item.setAttribute('style', 'stroke:#000000;fill:none;') // 绘制边框
       // 添加编号
       let text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
       text.setAttribute('x', `${item.center.x - 5}`)
       text.setAttribute('y', `${item.center.y + 3}`)
       text.innerHTML = `${index + 1}`
-
       this.textIndexDomArr.push(text)
+
+      if (config.spliceIndexArr.indexOf(index) != -1) { return }
       this.picture.appendChild(text)
+      item.setAttribute('style', 'stroke:#000000;fill:none;') // 绘制边框
     })
 
     this.initWaitPolygonAndText()
@@ -138,7 +136,7 @@ class Game {
         // 1.将碎片重置到0,0
         // 2.加上屏幕高度 - 自身高度 - 底边距 = y
         // 3.加上屏幕左边距 + n倍的140 = x
-        str += `${elem.x - item.x + (index * 140) + config.paddingLeft},${elem.y - item.y + config.viewBoxHeight - item.height - config.paddingBottom} `
+        str += `${elem.x - item.x + (index * 140) + config.paddingLeft},${elem.y - item.y + config.viewBoxHeight() - item.height - config.paddingBottom} `
       })
      
       // polygon
@@ -148,48 +146,67 @@ class Game {
       // 编号
       let text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
       text.setAttribute('x', `${item.center.x - item.x - 5 + (index * 140) + config.paddingLeft}`)
-      text.setAttribute('y', `${item.center.y - item.y + 3 + config.viewBoxHeight - item.height - config.paddingBottom}`)
+      text.setAttribute('y', `${item.center.y - item.y + 3 + config.viewBoxHeight() - item.height - config.paddingBottom}`)
       text.innerHTML = index + 1
-      // 添加到picture
+      this.waitPolygonAndText.push({ polygon: new Polygon(polygon), text }) // 储存
+
+      if (config.spliceIndexArr.indexOf(index) != -1) { return }
+      // 添加到picture, 如果没有被拼合过就添加到html
       this.picture.appendChild(polygon)
       this.picture.appendChild(text)
-      this.waitPolygonAndText.push({ polygon: new Polygon(polygon), text }) // 储存
     })
   }
 
-  playGuideAnimation () {
-    if (this.gameState === 'playing') { return }
+  restart () {
+    this.picture.innerHTML = this.pictureHTML
+    this.init()
+  }
 
-    this.maskImg.style.top = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset + 'px'
-    this.maskImg.style.left = (this.waitPolygonAndText[0].polygon.x + 30) / config.screenOffset + 'px'
+  playGuideAnimation () {
+    if (config.gameState === 'playing') { return }
+    if (this.timeId_1) { 
+      clearTimeout(this.timeId_1)
+      this.timeId_1 = null
+    }
+    if (this.timeId_2) { 
+      clearTimeout(this.timeId_2)
+      this.timeId_2 = null
+    }
+    if (this.timeId_3) { 
+      clearTimeout(this.timeId_3)
+      this.timeId_3 = null
+    }
+
+    this.maskImg.style.top = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() + 'px'
+    this.maskImg.style.left = (this.waitPolygonAndText[0].polygon.x + 30) / config.screenOffset() + 'px'
     this.waitPolygonAndText[0].text.style.visibility = 'hidden'  // 隐藏编号
 
-    const distance = (this.waitPolygonAndText[0].polygon.y - this.polygonArr[0].y) / config.screenOffset  // px
-    const startY = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset // px
+    const distance = (this.waitPolygonAndText[0].polygon.y - this.polygonArr[0].y) / config.screenOffset()  // px
+    const startY = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() // px
     const len = 40 // 时长1s，每20ms一次，共50次
     const stageY = distance / len // 每次运动stage个距离
 
-    setTimeout(() => {
+    this.timeId_1 = setTimeout(() => {
       this.guideAnimationTimer(len, startY, stageY, '-')
     }, 1000)
   }
 
   guideAnimationTimer (count, startY, stageY, type) {
-    if (this.gameState === 'playing') { return }
-    setTimeout(() => {
+    if (config.gameState === 'playing') { return }
+    this.timeId_2 = setTimeout(() => {
       if (type === '+') {
-        startY = (this.polygonArr[0].y + 45) / config.screenOffset
+        startY = (this.polygonArr[0].y + 45) / config.screenOffset()
         this.maskImg.style.top = startY + (40 - count) * stageY + 'px'
       } else {
         this.maskImg.style.top = startY - (40 - count) * stageY + 'px'
-        this.moveActivePolygon(10, 100 - ((40 - count) * stageY) * config.screenOffset)
+        this.moveActivePolygon(10, 100 - ((40 - count) * stageY) * config.screenOffset())
       }
 
       if (count === 0 && type === '-') {
         // 到达顶部
         this.polygonArr[0].setAttribute('style', 'stroke:none;fill:none;')
 
-        setTimeout(() => {
+        this.timeId_3 = setTimeout(() => {
           this.guideAnimationTimer(40, startY, stageY, '+')
         }, 500)
         return
@@ -234,8 +251,8 @@ class Game {
       this.picture.removeChild(this.waitPolygonAndText[this.currDraggableNum].polygon.polygonDom)  // 删除拖动的polygon
       this.showStageAnimation()
       
-      this.spliceCount++
-      this.spliceCount === this.polygonArr.length ? this.gameOver() : ''
+      config.spliceIndexArr.push(this.currDraggableNum)
+      config.spliceIndexArr.length === this.polygonArr.length ? this.gameOver() : ''
     } else {
       // reset
       this.moveActivePolygon(0, 100)
@@ -247,21 +264,21 @@ class Game {
     this.stageAnimation.innerHTML = ''
     let currPolygon = this.polygonArr[this.currDraggableNum]
 
-    this.stageAnimation.style.width = (100 / config.screenOffset) + 'px'
-    this.stageAnimation.style.height = (100 / config.screenOffset) + 'px'
-    this.stageAnimation.style.top = currPolygon.y / config.screenOffset + 'px'
-    this.stageAnimation.style.left = currPolygon.x / config.screenOffset + 'px'
+    this.stageAnimation.style.width = (100 / config.screenOffset()) + 'px'
+    this.stageAnimation.style.height = (100 / config.screenOffset()) + 'px'
+    this.stageAnimation.style.top = currPolygon.y / config.screenOffset() + 'px'
+    this.stageAnimation.style.left = currPolygon.x / config.screenOffset() + 'px'
     // 通用的方法
-    // this.stageAnimation.style.transform = `translate(-${((100 - currPolygon.width) / 2) / config.screenOffset}px, -${((100 - currPolygon.height) / 2) / config.screenOffset}px)`
+    // this.stageAnimation.style.transform = `translate(-${((100 - currPolygon.width) / 2) / config.screenOffset()}px, -${((100 - currPolygon.height) / 2) / config.screenOffset()}px)`
 
     if (this.currDraggableNum === 0) {
-      this.stageAnimation.style.transform = `translate(${10 / config.screenOffset}px, -${10 / config.screenOffset}px)`
+      this.stageAnimation.style.transform = `translate(${10 / config.screenOffset()}px, -${10 / config.screenOffset()}px)`
     } else if (this.currDraggableNum === 1) {
-      this.stageAnimation.style.transform = `translate(-${25 / config.screenOffset}px, -${30 / config.screenOffset}px)`
+      this.stageAnimation.style.transform = `translate(-${25 / config.screenOffset()}px, -${30 / config.screenOffset()}px)`
     } else if (this.currDraggableNum === 2) {
-      this.stageAnimation.style.transform = `translate(-${30 / config.screenOffset}px, -${35 / config.screenOffset}px)`
+      this.stageAnimation.style.transform = `translate(-${30 / config.screenOffset()}px, -${35 / config.screenOffset()}px)`
     } else if (this.currDraggableNum === 3) {
-      this.stageAnimation.style.transform = `translate(-${28 / config.screenOffset}px, -${30 / config.screenOffset}px)`
+      this.stageAnimation.style.transform = `translate(-${28 / config.screenOffset()}px, -${30 / config.screenOffset()}px)`
     }
 
     lottie.loadAnimation({

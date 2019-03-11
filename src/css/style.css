@@ -45,7 +45,6 @@ text {
 	font-size: 12px;
 }
 #stage-animation {
-	display: none;
 	position: absolute;
 }
 #end-animation {

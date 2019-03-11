@@ -1,6 +1,7 @@
 import Polygon from './polygon'
 import Util from './util'
 import config from './config'
+import lottie from './lottie'
 
 /**
  * 游戏类
@@ -263,13 +264,23 @@ class Game {
       this.stageAnimation.style.transform = `translate(-${28 / config.screenOffset}px, -${30 / config.screenOffset}px)`
     }
 
-    this.stageAnimation.style.display = 'block'
-    setTimeout(() => {
-      this.stageAnimation.style.display = 'none'
-    }, 800)
+    lottie.loadAnimation({
+      container: document.getElementById('stage-animation'),
+      renderer: 'svg',
+      loop: false,
+      autoplay: true,
+      path: 'stage.json'
+    })
   }
 
   gameOver () {
+    lottie.loadAnimation({
+      container: document.getElementById('end-animation'),
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: 'success.json'
+    })
 
     setTimeout(() => {
       this.end.classList.add('active')

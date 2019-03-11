@@ -20,6 +20,7 @@ class Game {
     this.startImg = document.querySelector('.start img')
     this.wrapTips = document.querySelector('.wrap .tips')
     this.downloadImg = document.querySelector('.download img')
+    this.waitPolygonWrap = document.querySelectorAll('.wait-polygon-wrap')
 
     this.mouseStartX = 0
     this.mouseStartY = 0
@@ -39,7 +40,7 @@ class Game {
   event () {
     window.onresize = () => this.restart()
 
-    document.ontouchstart = () => {
+    document.ontouchstart = (e) => {
       if (config.gameState === 'playing') { return }
 
       config.gameState = 'playing'
@@ -47,7 +48,9 @@ class Game {
       this.wrapTips.style.display = 'none'
       setTimeout(() => {
         this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
-        this.waitPolygonAndText[0].text.style.visibility = 'visible'
+        if (e.target.className !== 'wait-polygon-wrap') {
+          this.waitPolygonAndText[0].text.style.visibility = 'visible'
+        }
         this.moveActivePolygon(0, 100, 0)
       }, 30)
     }
@@ -62,13 +65,9 @@ class Game {
       // 鼠标偏移量 * svg相对于屏幕的缩放比 = polygon相对于初始坐标的偏移量
       this.moveActivePolygon(offsetX * config.screenOffset(), offsetY * config.screenOffset())
     }
-
-    this.waitPolygonAndText.forEach((item, index) => {
-      const onTouchEnd = (e) => {
-        this.isDraggable = false
-        this.collisionDetection()
-      }
-      const onTouchStart = (e) => {
+    
+    this.waitPolygonWrap.forEach((item, index) => {
+      item.ontouchstart = (e) => {
         this.isDraggable = true
         this.currDraggableNum = index
 
@@ -78,11 +77,11 @@ class Game {
         this.waitPolygonAndText[index].text.style.visibility = 'hidden'  // 隐藏编号
         this.moveActivePolygon(0, 0)
       }
-      
-      item.polygon.polygonDom.ontouchstart = onTouchStart
-      item.text.ontouchstart = onTouchStart
-      item.polygon.polygonDom.ontouchend = onTouchEnd
-      item.text.ontouchend = onTouchEnd
+
+      item.ontouchend = () => {
+        this.isDraggable = false
+        this.collisionDetection()
+      }
     })
   }
 
@@ -143,12 +142,19 @@ class Game {
       let polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
       polygon.setAttribute('style', `fill:${item.color};`)
       polygon.setAttribute('points', str)
+
       // 编号
       let text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
       text.setAttribute('x', `${item.center.x - item.x - 5 + (index * 140) + config.paddingLeft}`)
       text.setAttribute('y', `${item.center.y - item.y + 3 + config.viewBoxHeight() - item.height - config.paddingBottom}`)
       text.innerHTML = index + 1
       this.waitPolygonAndText.push({ polygon: new Polygon(polygon), text }) // 储存
+
+      // 外接矩形，为了增加触摸面积
+      this.waitPolygonWrap[index].style.top = this.waitPolygonAndText[index].polygon.y / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.left = this.waitPolygonAndText[index].polygon.x / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.width = this.waitPolygonAndText[index].polygon.width / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.height = this.waitPolygonAndText[index].polygon.height / config.screenOffset() + 'px'
 
       if (config.spliceIndexArr.indexOf(index) != -1) { return }
       // 添加到picture, 如果没有被拼合过就添加到html

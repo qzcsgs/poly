@@ -53,6 +53,9 @@ text {
 	left: 50%;
 	transform: translateX(-50%);
 }
+.wait-polygon-wrap {
+	position: absolute;
+}
 
 .wrap .end {
 	position: absolute;

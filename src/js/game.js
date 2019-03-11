@@ -17,8 +17,8 @@ class Game {
     this.picturePolygon = document.querySelectorAll('#picture polygon')
     this.end = document.querySelector('.end')
     this.stageAnimation = document.getElementById('stage-animation')
-    this.mask = document.querySelector('.mask')
-    this.maskImg = document.querySelector('.start img')
+    this.startImg = document.querySelector('.start img')
+    this.wrapTips = document.querySelector('.wrap .tips')
 
     this.mouseStartX = 0
     this.mouseStartY = 0
@@ -38,6 +38,19 @@ class Game {
   event () {
     window.onresize = () => this.restart()
 
+    document.ontouchstart = () => {
+      if (config.gameState === 'playing') { return }
+
+      config.gameState = 'playing'
+      this.startImg.style.display = 'none'
+      this.wrapTips.style.display = 'none'
+      setTimeout(() => {
+        this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
+        this.waitPolygonAndText[0].text.style.visibility = 'visible'
+        this.moveActivePolygon(0, 100, 0)
+      }, 30)
+    }
+
     document.ontouchmove = (e) => {
       if (!this.isDraggable) {
         return false
@@ -48,17 +61,6 @@ class Game {
       let offsetY = e.changedTouches[0].pageY - this.mouseStartY
       // 鼠标偏移量 * svg相对于屏幕的缩放比 = polygon相对于初始坐标的偏移量
       this.moveActivePolygon(offsetX * config.screenOffset(), offsetY * config.screenOffset())
-    }
-
-    this.mask.onclick = () => {
-      config.gameState = 'playing'
-      this.mask.style.display = 'none'
-      this.maskImg.style.display = 'none'
-      setTimeout(() => {
-        this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
-        this.waitPolygonAndText[0].text.style.visibility = 'visible'
-        this.moveActivePolygon(0, 100)
-      }, 30)
     }
 
     this.waitPolygonAndText.forEach((item, index) => {
@@ -177,8 +179,8 @@ class Game {
       this.timeId_3 = null
     }
 
-    this.maskImg.style.top = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() + 'px'
-    this.maskImg.style.left = (this.waitPolygonAndText[0].polygon.x + 30) / config.screenOffset() + 'px'
+    this.startImg.style.top = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() + 'px'
+    this.startImg.style.left = (this.waitPolygonAndText[0].polygon.x + 30) / config.screenOffset() + 'px'
     this.waitPolygonAndText[0].text.style.visibility = 'hidden'  // 隐藏编号
 
     const distance = (this.waitPolygonAndText[0].polygon.y - this.polygonArr[0].y) / config.screenOffset()  // px
@@ -196,9 +198,9 @@ class Game {
     this.timeId_2 = setTimeout(() => {
       if (type === '+') {
         startY = (this.polygonArr[0].y + 45) / config.screenOffset()
-        this.maskImg.style.top = startY + (40 - count) * stageY + 'px'
+        this.startImg.style.top = startY + (40 - count) * stageY + 'px'
       } else {
-        this.maskImg.style.top = startY - (40 - count) * stageY + 'px'
+        this.startImg.style.top = startY - (40 - count) * stageY + 'px'
         this.moveActivePolygon(10, 100 - ((40 - count) * stageY) * config.screenOffset())
       }
 
@@ -226,16 +228,18 @@ class Game {
    * 移动被拖动的polygon
    * @param {number} offsetX 水平方向偏移量
    * @param {number} offsetY 竖直方向偏移量
+   * @param {number} index 要移动的polygon索引
    */
-  moveActivePolygon (offsetX, offsetY) {
+  moveActivePolygon (offsetX, offsetY, index) {
+    index = index === undefined ? this.currDraggableNum : index
     let pointStr = ''
-    let startPoint = this.waitPolygonAndText[this.currDraggableNum].polygon.initPoints
+    let startPoint = this.waitPolygonAndText[index].polygon.initPoints
 
     startPoint.forEach(item => {
       pointStr += `${item.x + offsetX},${item.y + offsetY - 100} ` // y轴多减100保证polygon在手指上方
     })
-    this.waitPolygonAndText[this.currDraggableNum].polygon.setAttribute('points', pointStr)
-    this.waitPolygonAndText[this.currDraggableNum].polygon.externalRectangle()  // 更新外接矩形的信息
+    this.waitPolygonAndText[index].polygon.setAttribute('points', pointStr)
+    this.waitPolygonAndText[index].polygon.externalRectangle()  // 更新外接矩形的信息
   }
 
   /**
@@ -268,9 +272,10 @@ class Game {
     this.stageAnimation.style.height = (100 / config.screenOffset()) + 'px'
     this.stageAnimation.style.top = currPolygon.y / config.screenOffset() + 'px'
     this.stageAnimation.style.left = currPolygon.x / config.screenOffset() + 'px'
-    // 通用的方法
+    // 通用的方法, 稍有偏差
     // this.stageAnimation.style.transform = `translate(-${((100 - currPolygon.width) / 2) / config.screenOffset()}px, -${((100 - currPolygon.height) / 2) / config.screenOffset()}px)`
 
+    // 为了美观手动计算了4个位置
     if (this.currDraggableNum === 0) {
       this.stageAnimation.style.transform = `translate(${10 / config.screenOffset()}px, -${10 / config.screenOffset()}px)`
     } else if (this.currDraggableNum === 1) {

@@ -34,11 +34,11 @@ body {
 	z-index: 2;
 	background: rgba(0, 0, 0, 0.3);
 }
-.mask .tips {
-	position: absolute;
+.tips {
+	position: fixed;
 	right: 10%;
 	bottom: 20%;
-	color: #fff;
+	color: #73C7FD;
 	font-size: 24px;
 }
 text {
@@ -200,7 +200,7 @@ text {
 	.start img {
 		width: 214px;
 	}
-	.mask .tips {
+	.tips {
 		font-size: 34px;
 	}
 }

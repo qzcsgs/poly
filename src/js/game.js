@@ -48,7 +48,7 @@ class Game {
       this.wrapTips.style.display = 'none'
       setTimeout(() => {
         this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
-        if (e.target.className !== 'wait-polygon-wrap') {
+        if (e.target.className !== 'wait-polygon-wrap active') {
           this.waitPolygonAndText[0].text.style.visibility = 'visible'
         }
         this.moveActivePolygon(0, 100, 0)

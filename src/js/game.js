@@ -56,6 +56,16 @@ class Game {
       }, 30)
     }
 
+    document.ontouchend = (e) => {
+      if (config.spliceIndexArr.length !== 0) { return }
+
+      config.gameState = 'startBefore'
+      this.startImg.style.display = 'block'
+      this.wrapTips.style.display = 'block'
+
+      this.restart()
+    }
+
     document.ontouchmove = (e) => {
       if (!this.isDraggable) {
         return false

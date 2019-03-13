@@ -304,7 +304,7 @@ class Game {
     lottie.loadAnimation({
       container: document.getElementById('end-animation'),
       renderer: 'svg',
-      loop: true,
+      loop: false,
       autoplay: true,
       path: 'success.json'
     })

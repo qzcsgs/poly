@@ -19,8 +19,9 @@ class Game {
     this.stageAnimation = document.getElementById('stage-animation')
     this.startImg = document.querySelector('.start img')
     this.wrapTips = document.querySelector('.wrap .tips')
-    this.downloadImg = document.querySelector('.download img')
+    this.downloadWrapHand = document.querySelector('.download-wrap .hand')
     this.waitPolygonWrap = document.querySelectorAll('.wait-polygon-wrap')
+    this.downloadBtn = document.querySelectorAll('.download')
 
     this.mouseStartX = 0
     this.mouseStartY = 0
@@ -309,7 +310,8 @@ class Game {
     })
 
     setTimeout(() => {
-      this.downloadImg.src = this.startImg.src
+      this.downloadWrapHand.src = this.startImg.src
+      this.downloadBtn[1].src = this.downloadBtn[0].src
       this.end.classList.add('active')
     }, 1000)
   }

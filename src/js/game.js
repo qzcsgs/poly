@@ -32,6 +32,7 @@ class Game {
     this.waitPolygonAndText = [] // 等待着被拖动的polygon和text
     this.pictureHTML = this.picture.innerHTML
     this.audio = this.audio || new Audio({ name: '', loop: false})
+    this.guidePolygon = null
 
     this.initObject()
     this.event()
@@ -49,12 +50,10 @@ class Game {
       config.gameState = 'playing'
       this.startImg.style.display = 'none'
       this.wrapTips.style.display = 'none'
+      this.guidePolygon.polygonDom.style.display = 'none'
       setTimeout(() => {
         this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
-        if (e.target.className !== 'wait-polygon-wrap active') {
-          this.waitPolygonAndText[0].text.style.visibility = 'visible'
-        }
-        this.moveActivePolygon(0, 100, 0)
+        this.guidePolygon.move(0, 100)
       }, 30)
     }
 
@@ -196,9 +195,16 @@ class Game {
       this.timeId_3 = null
     }
 
+    if (!this.guidePolygon) {
+      let guidePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+      guidePolygon.setAttribute('points', this.waitPolygonAndText[0].polygon.getPointsToString())
+      guidePolygon.setAttribute('style', `fill:${this.waitPolygonAndText[0].polygon.color};`)
+      this.picture.appendChild(guidePolygon)
+      this.guidePolygon = new Polygon(guidePolygon)
+    }
+
     this.startImg.style.top = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() + 'px'
     this.startImg.style.left = (this.waitPolygonAndText[0].polygon.x + 30) / config.screenOffset() + 'px'
-    this.waitPolygonAndText[0].text.style.visibility = 'hidden'  // 隐藏编号
 
     const distance = (this.waitPolygonAndText[0].polygon.y - this.polygonArr[0].y) / config.screenOffset()  // px
     const startY = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() // px
@@ -218,7 +224,7 @@ class Game {
         this.startImg.style.top = startY + (40 - count) * stageY + 'px'
       } else {
         this.startImg.style.top = startY - (40 - count) * stageY + 'px'
-        this.moveActivePolygon(10, 100 - ((40 - count) * stageY) * config.screenOffset())
+        this.guidePolygon.move(10, 100 - ((40 - count) * stageY) * config.screenOffset())
       }
 
       if (count === 0 && type === '-') {
@@ -231,7 +237,7 @@ class Game {
         return
       } else if (count === 0 && type === '+') {
         // 到达底部
-        this.moveActivePolygon(0, 100)
+        this.guidePolygon.move(0, 100)
         this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
         this.playGuideAnimation()
         return

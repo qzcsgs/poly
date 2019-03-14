@@ -47,7 +47,7 @@ class Polygon {
 
   getAnimatedPoints () {
     let points = []
-    let pointArr = this.polygonDom.attributes.points.value.trim().split(' ')
+    let pointArr = this.getPointsToString().split(' ')
 
     pointArr.forEach(item => {
       let arr = item.split(',')
@@ -58,6 +58,10 @@ class Polygon {
     })
 
     return points
+  }
+
+  getPointsToString () {
+    return this.polygonDom.attributes.points.value.trim()
   }
 
   /**

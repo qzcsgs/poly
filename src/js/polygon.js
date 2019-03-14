@@ -61,6 +61,21 @@ class Polygon {
   }
 
   /**
+   * @param {number} offsetX 水平方向偏移量
+   * @param {number} offsetY 竖直方向偏移量
+   */
+  move (offsetX, offsetY) {
+    let pointStr = ''
+
+    this.initPoints.forEach(item => {
+      pointStr += `${item.x + offsetX},${item.y + offsetY - 100} ` // y轴多减100保证polygon在手指上方
+    })
+
+    this.setAttribute('points', pointStr)
+    this.externalRectangle()  // 更新外接矩形的信息
+  }
+
+  /**
    * 暴露DOM方法
    */
   setAttribute (key, value) {

@@ -249,14 +249,7 @@ class Game {
    */
   moveActivePolygon (offsetX, offsetY, index) {
     index = index === undefined ? this.currDraggableNum : index
-    let pointStr = ''
-    let startPoint = this.waitPolygonAndText[index].polygon.initPoints
-
-    startPoint.forEach(item => {
-      pointStr += `${item.x + offsetX},${item.y + offsetY - 100} ` // y轴多减100保证polygon在手指上方
-    })
-    this.waitPolygonAndText[index].polygon.setAttribute('points', pointStr)
-    this.waitPolygonAndText[index].polygon.externalRectangle()  // 更新外接矩形的信息
+    this.waitPolygonAndText[index].polygon.move(offsetX, offsetY)
   }
 
   /**

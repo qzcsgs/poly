@@ -2,6 +2,7 @@ import Polygon from './polygon'
 import Util from './util'
 import config from './config'
 import lottie from './lottie'
+import Audio from './audio'
 
 /**
  * 游戏类
@@ -30,6 +31,7 @@ class Game {
     this.textIndexDomArr = []  // 序号dom集合
     this.waitPolygonAndText = [] // 等待着被拖动的polygon和text
     this.pictureHTML = this.picture.innerHTML
+    this.audio = this.audio || new Audio({ name: '', loop: false})
 
     this.initObject()
     this.event()
@@ -181,7 +183,7 @@ class Game {
 
   playGuideAnimation () {
     if (config.gameState === 'playing') { return }
-    if (this.timeId_1) { 
+    if (this.timeId_1) {
       clearTimeout(this.timeId_1)
       this.timeId_1 = null
     }
@@ -269,10 +271,13 @@ class Game {
       this.picture.removeChild(this.textIndexDomArr[this.currDraggableNum]) // 删除编号
       this.picture.removeChild(this.waitPolygonAndText[this.currDraggableNum].polygon.polygonDom)  // 删除拖动的polygon
       this.showStageAnimation()
-      
+      this.audio.play({ name: 'success' })
+
       config.spliceIndexArr.push(this.currDraggableNum)
       config.spliceIndexArr.length === this.polygonArr.length ? this.gameOver() : ''
     } else {
+      this.audio.play({ name: 'miss' })
+
       // reset
       this.moveActivePolygon(0, 100)
       this.waitPolygonAndText[this.currDraggableNum].text.style.visibility = 'visible'
@@ -311,6 +316,7 @@ class Game {
   }
 
   gameOver () {
+    this.audio.play({ name: 'over' })
     lottie.loadAnimation({
       container: document.getElementById('end-animation'),
       renderer: 'svg',

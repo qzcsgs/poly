@@ -88,13 +88,13 @@ class Polygon {
    * 添加编号
    */ 
   addIndex () {
-    if (config.spliceIndexArr.indexOf(this.index - 1) != -1) { return false }  // 已经拼合的不需要添加编号
-
     this.text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     this.text.setAttribute('x', `${this.center.x - 5}`)
     this.text.setAttribute('y', `${this.center.y + 3}`)
     this.text.innerHTML = `${this.index}`
-    document.querySelector('#picture').appendChild(this.text)
+    
+    if (config.spliceIndexArr.indexOf(this.index - 1) != -1) { return false }  // 已经拼合的不需要添加编号
+    Stage.picture.appendChild(this.text)
     this.fill()
   }
 

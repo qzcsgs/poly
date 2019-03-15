@@ -3,6 +3,7 @@ import Util from './util'
 import config from './config'
 import lottie from './lottie'
 import Audio from './audio'
+import Guide from './guide'
 
 /**
  * 游戏类
@@ -14,26 +15,28 @@ class Game {
 
   init () {
     // 获取相应元素
-    this.picture = document.querySelector('#picture')
     this.picturePolygon = document.querySelectorAll('#picture polygon')
     this.end = document.querySelector('.end')
     this.stageAnimation = document.getElementById('stage-animation')
-    this.startImg = document.querySelector('.start img')
-    this.wrapTips = document.querySelector('.wrap .tips')
     this.downloadWrapHand = document.querySelector('.download-wrap .hand')
     this.waitPolygonWrap = document.querySelectorAll('.wait-polygon-wrap')
     this.downloadBtn = document.querySelectorAll('.download')
 
-    this.polygonArr = []
+    window.Stage = {
+      picture: document.querySelector('#picture')
+    }
+    window.Spirit = {
+      picturePolygon: [],
+      waitPolygon: [], // 等待着被拖动的polygon
+    }
+   
     this.mouseStartX = 0
     this.mouseStartY = 0
     this.isDraggable = false // 是否在拖动中
     this.currDraggableNum = 0 // 当前拖拽的第几个
-    this.textIndexDomArr = []  // 序号dom集合
-    this.waitPolygon = [] // 等待着被拖动的polygon
-    this.pictureHTML = this.picture.innerHTML
+    this.pictureHTML = Stage.picture.innerHTML
     this.audio = this.audio || new Audio({ name: '', loop: false})
-    this.guidePolygon = null
+    this.guide = this.guide || new Guide()
 
     this.initObject()
     this.event()
@@ -47,25 +50,14 @@ class Game {
 
     document.ontouchstart = (e) => {
       if (config.gameState === 'playing') { return }
-
       config.gameState = 'playing'
-      this.startImg.style.display = 'none'
-      this.wrapTips.style.display = 'none'
-      this.guidePolygon.polygonDom.style.display = 'none'
-      setTimeout(() => {
-        this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
-        this.guidePolygon.move(0, 100)
-      }, 30)
+      this.guide.stop()
     }
 
     document.ontouchend = (e) => {
       if (config.spliceIndexArr.length !== 0) { return }
-
       config.gameState = 'startBefore'
-      this.startImg.style.display = 'block'
-      this.wrapTips.style.display = 'block'
-
-      this.restart()
+      this.guide.play()
     }
 
     document.ontouchmove = (e) => {
@@ -87,7 +79,7 @@ class Game {
         this.mouseStartX = e.touches[0].pageX
         this.mouseStartY = e.touches[0].pageY
 
-        this.waitPolygon[index].showHideNumbering('hidden')  // 隐藏编号
+        Spirit.waitPolygon[index].showHideNumbering('hidden')  // 隐藏编号
         this.moveActivePolygon(0, 0)
       }
 
@@ -104,10 +96,10 @@ class Game {
   initObject () {
     // 遍历初始化所有polygon
     // this.picturePolygon.forEach((item, index) => {
-    //   this.polygonArr.push(new Polygon(item, index + 1))
+    //   Spirit.picturePolygon.push(new Polygon(item, index + 1))
     // })
     // 需求4块
-    this.polygonArr = [
+    Spirit.picturePolygon = [
       new Polygon(this.picturePolygon[0], 1),
       new Polygon(this.picturePolygon[54], 2),
       new Polygon(this.picturePolygon[59], 3),
@@ -115,7 +107,7 @@ class Game {
     ]
     
     this.initPicture()
-    this.playGuideAnimation()
+    this.guide.play()
   }
 
   /**
@@ -123,7 +115,7 @@ class Game {
    */
   initPicture () {
     // 根据屏幕比例设置viewBox
-    this.picture.setAttribute('viewBox', `0 0 ${config.viewBoxWidth} ${config.viewBoxHeight()}`)
+    Stage.picture.setAttribute('viewBox', `0 0 ${config.viewBoxWidth} ${config.viewBoxHeight()}`)
     this.initWaitPolygonAndText()
   }
 
@@ -131,7 +123,7 @@ class Game {
    * 初始化待拖动polygon
    */
   initWaitPolygonAndText () {
-    this.polygonArr.forEach((item, index) => {
+    Spirit.picturePolygon.forEach((item, index) => {
       const animatedPoints = item.getAnimatedPoints()
       let str = ''
 
@@ -149,94 +141,25 @@ class Game {
 
       // 横竖屏转换前已经拼合的不需要再进行初始化
       if (config.spliceIndexArr.indexOf(index) === -1) {
-        this.picture.appendChild(polygon)
+        Stage.picture.appendChild(polygon)
       }
 
       let polygonObj = new Polygon(polygon, index + 1)
       polygonObj.fill()
       polygonObj.showHideNumbering('visible')
-      this.waitPolygon.push(polygonObj) // 储存
+      Spirit.waitPolygon.push(polygonObj) // 储存
 
       // 外接矩形，为了增加触摸面积
-      this.waitPolygonWrap[index].style.top = this.waitPolygon[index].y / config.screenOffset() + 'px'
-      this.waitPolygonWrap[index].style.left = this.waitPolygon[index].x / config.screenOffset() + 'px'
-      this.waitPolygonWrap[index].style.width = this.waitPolygon[index].width / config.screenOffset() + 'px'
-      this.waitPolygonWrap[index].style.height = this.waitPolygon[index].height / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.top = Spirit.waitPolygon[index].y / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.left = Spirit.waitPolygon[index].x / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.width = Spirit.waitPolygon[index].width / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.height = Spirit.waitPolygon[index].height / config.screenOffset() + 'px'
     })
   }
 
   restart () {
-    this.picture.innerHTML = this.pictureHTML
+    Stage.picture.innerHTML = this.pictureHTML
     this.init()
-  }
-
-  playGuideAnimation () {
-    if (config.gameState === 'playing') { return }
-    if (this.timeId_1) {
-      clearTimeout(this.timeId_1)
-      this.timeId_1 = null
-    }
-    if (this.timeId_2) { 
-      clearTimeout(this.timeId_2)
-      this.timeId_2 = null
-    }
-    if (this.timeId_3) { 
-      clearTimeout(this.timeId_3)
-      this.timeId_3 = null
-    }
-
-    if (!this.guidePolygon) {
-      let guidePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
-      guidePolygon.setAttribute('points', this.waitPolygon[0].getPointsToString())
-      guidePolygon.setAttribute('style', `fill:${this.waitPolygon[0].color};`)
-      this.picture.appendChild(guidePolygon)
-      this.guidePolygon = new Polygon(guidePolygon)
-      this.guidePolygon.fill()
-      this.guidePolygon.showHideNumbering('hidden')
-    }
-
-    this.startImg.style.top = (this.waitPolygon[0].y + 45) / config.screenOffset() + 'px'
-    this.startImg.style.left = (this.waitPolygon[0].x + 30) / config.screenOffset() + 'px'
-
-    const distance = (this.waitPolygon[0].y - this.polygonArr[0].y) / config.screenOffset()  // px
-    const startY = (this.waitPolygon[0].y + 45) / config.screenOffset() // px
-    const len = 40 // 时长1s，每20ms一次，共50次
-    const stageY = distance / len // 每次运动stage个距离
-
-    this.timeId_1 = setTimeout(() => {
-      this.guideAnimationTimer(len, startY, stageY, '-')
-    }, 1000)
-  }
-
-  guideAnimationTimer (count, startY, stageY, type) {
-    if (config.gameState === 'playing') { return }
-    this.timeId_2 = setTimeout(() => {
-      if (type === '+') {
-        startY = (this.polygonArr[0].y + 45) / config.screenOffset()
-        this.startImg.style.top = startY + (40 - count) * stageY + 'px'
-      } else {
-        this.startImg.style.top = startY - (40 - count) * stageY + 'px'
-        this.guidePolygon.move(10, 100 - ((40 - count) * stageY) * config.screenOffset())
-      }
-
-      if (count === 0 && type === '-') {
-        // 到达顶部
-        this.polygonArr[0].setAttribute('style', 'stroke:none;fill:none;')
-
-        this.timeId_3 = setTimeout(() => {
-          this.guideAnimationTimer(40, startY, stageY, '+')
-        }, 500)
-        return
-      } else if (count === 0 && type === '+') {
-        // 到达底部
-        this.guidePolygon.move(0, 100)
-        this.polygonArr[0].setAttribute('style', 'stroke:#000000;fill:none;')
-        this.playGuideAnimation()
-        return
-      }
-      count--
-      this.guideAnimationTimer(count, startY, stageY, type)
-    }, 20)
   }
 
   /**
@@ -247,24 +170,24 @@ class Game {
    */
   moveActivePolygon (offsetX, offsetY, index) {
     index = index === undefined ? this.currDraggableNum : index
-    this.waitPolygon[index].move(offsetX, offsetY)
+    Spirit.waitPolygon[index].move(offsetX, offsetY)
   }
 
   /**
    * 碰撞检测
    */
   collisionDetection () {
-    let currPolygon = this.polygonArr[this.currDraggableNum]
-    let polygonActive = this.waitPolygon[this.currDraggableNum]
+    let currPolygon = Spirit.picturePolygon[this.currDraggableNum]
+    let polygonActive = Spirit.waitPolygon[this.currDraggableNum]
     
     if (Util.rectCollisioDetection(currPolygon, polygonActive)) {
       currPolygon.fill()
-      this.picture.removeChild(polygonActive.polygonDom)  // 删除拖动的polygon
+      Stage.picture.removeChild(polygonActive.polygonDom)  // 删除拖动的polygon
       this.showStageAnimation()
       this.audio.play({ name: 'success' })
 
       config.spliceIndexArr.push(this.currDraggableNum)
-      config.spliceIndexArr.length === this.polygonArr.length ? this.gameOver() : ''
+      config.spliceIndexArr.length === Spirit.picturePolygon.length ? this.gameOver() : ''
     } else {
       this.audio.play({ name: 'miss' })
 
@@ -276,7 +199,7 @@ class Game {
 
   showStageAnimation () {
     this.stageAnimation.innerHTML = ''
-    let currPolygon = this.polygonArr[this.currDraggableNum]
+    let currPolygon = Spirit.picturePolygon[this.currDraggableNum]
 
     this.stageAnimation.style.width = (100 / config.screenOffset()) + 'px'
     this.stageAnimation.style.height = (100 / config.screenOffset()) + 'px'

@@ -1,15 +1,20 @@
+import config from './config'
 /**
  * Polygon类
+ * @param {object} polygonDom polygon DOM 对象
+ * @param {number} index 编号
  */
 class Polygon {
-  constructor (polygonDom) {
-    this.init(polygonDom)
+  constructor (polygonDom, index) {
+    this.init(polygonDom, index)
   }
 
-  init (polygonDom) {
+  init (polygonDom, index) {
     this.polygonDom = polygonDom
+    this.index = index || 0
     this.initPoints = this.getAnimatedPoints()
     this.externalRectangle()
+    this.addIndex()
   }
 
   /**
@@ -77,6 +82,44 @@ class Polygon {
 
     this.setAttribute('points', pointStr)
     this.externalRectangle()  // 更新外接矩形的信息
+  }
+
+  /**
+   * 添加编号
+   */ 
+  addIndex () {
+    if (config.spliceIndexArr.indexOf(this.index - 1) != -1) { return false }  // 已经拼合的不需要添加编号
+
+    this.text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    this.text.setAttribute('x', `${this.center.x - 5}`)
+    this.text.setAttribute('y', `${this.center.y + 3}`)
+    this.text.innerHTML = `${this.index}`
+    document.querySelector('#picture').appendChild(this.text)
+    this.fill()
+  }
+
+  /**
+   * 涂色，会自动判断当前状态
+   */
+  fill () {
+    let stroke = this.polygonDom.outerHTML.match(/stroke:\s?(n?)/)
+
+    if (stroke !== null && stroke[1] !== 'n') {
+      // 填充颜色
+      this.setAttribute('style', `stroke:none;fill:${this.color};`)
+      this.text.style.visibility = 'hidden'
+    } else {
+      // 取消填充颜色
+      this.setAttribute('style', `stroke:#000000;fill:none;`)
+      this.text.style.visibility = 'visible'
+    }
+  }
+
+  /**
+   * 控制编号显示隐藏
+   */
+  showHideNumbering (visibility) {
+    this.text.style.visibility = visibility
   }
 
   /**

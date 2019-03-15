@@ -24,12 +24,13 @@ class Game {
     this.waitPolygonWrap = document.querySelectorAll('.wait-polygon-wrap')
     this.downloadBtn = document.querySelectorAll('.download')
 
+    this.polygonArr = []
     this.mouseStartX = 0
     this.mouseStartY = 0
     this.isDraggable = false // 是否在拖动中
     this.currDraggableNum = 0 // 当前拖拽的第几个
     this.textIndexDomArr = []  // 序号dom集合
-    this.waitPolygonAndText = [] // 等待着被拖动的polygon和text
+    this.waitPolygon = [] // 等待着被拖动的polygon
     this.pictureHTML = this.picture.innerHTML
     this.audio = this.audio || new Audio({ name: '', loop: false})
     this.guidePolygon = null
@@ -86,7 +87,7 @@ class Game {
         this.mouseStartX = e.touches[0].pageX
         this.mouseStartY = e.touches[0].pageY
 
-        this.waitPolygonAndText[index].text.style.visibility = 'hidden'  // 隐藏编号
+        this.waitPolygon[index].showHideNumbering('hidden')  // 隐藏编号
         this.moveActivePolygon(0, 0)
       }
 
@@ -101,13 +102,18 @@ class Game {
    * 初始化相关对象
    */
   initObject () {
-    // 遍历初始化所有polygon, 需求只需要4块
+    // 遍历初始化所有polygon
+    // this.picturePolygon.forEach((item, index) => {
+    //   this.polygonArr.push(new Polygon(item, index + 1))
+    // })
+    // 需求4块
     this.polygonArr = [
-      new Polygon(this.picturePolygon[0]),
-      new Polygon(this.picturePolygon[54]),
-      new Polygon(this.picturePolygon[59]),
-      new Polygon(this.picturePolygon[72])
+      new Polygon(this.picturePolygon[0], 1),
+      new Polygon(this.picturePolygon[54], 2),
+      new Polygon(this.picturePolygon[59], 3),
+      new Polygon(this.picturePolygon[72], 4)
     ]
+    
     this.initPicture()
     this.playGuideAnimation()
   }
@@ -118,20 +124,6 @@ class Game {
   initPicture () {
     // 根据屏幕比例设置viewBox
     this.picture.setAttribute('viewBox', `0 0 ${config.viewBoxWidth} ${config.viewBoxHeight()}`)
-
-    this.polygonArr.forEach((item, index) => {
-      // 添加编号
-      let text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-      text.setAttribute('x', `${item.center.x - 5}`)
-      text.setAttribute('y', `${item.center.y + 3}`)
-      text.innerHTML = `${index + 1}`
-      this.textIndexDomArr.push(text)
-
-      if (config.spliceIndexArr.indexOf(index) != -1) { return }
-      this.picture.appendChild(text)
-      item.setAttribute('style', 'stroke:#000000;fill:none;') // 绘制边框
-    })
-
     this.initWaitPolygonAndText()
   }
 
@@ -155,23 +147,21 @@ class Game {
       polygon.setAttribute('style', `fill:${item.color};`)
       polygon.setAttribute('points', str)
 
-      // 编号
-      let text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-      text.setAttribute('x', `${item.center.x - item.x - 5 + (index * 140) + config.paddingLeft}`)
-      text.setAttribute('y', `${item.center.y - item.y + 3 + config.viewBoxHeight() - item.height - config.paddingBottom}`)
-      text.innerHTML = index + 1
-      this.waitPolygonAndText.push({ polygon: new Polygon(polygon), text }) // 储存
+      // 横竖屏转换前已经拼合的不需要再进行初始化
+      if (config.spliceIndexArr.indexOf(index) === -1) {
+        this.picture.appendChild(polygon)
+      }
+
+      let polygonObj = new Polygon(polygon, index + 1)
+      polygonObj.fill()
+      polygonObj.showHideNumbering('visible')
+      this.waitPolygon.push(polygonObj) // 储存
 
       // 外接矩形，为了增加触摸面积
-      this.waitPolygonWrap[index].style.top = this.waitPolygonAndText[index].polygon.y / config.screenOffset() + 'px'
-      this.waitPolygonWrap[index].style.left = this.waitPolygonAndText[index].polygon.x / config.screenOffset() + 'px'
-      this.waitPolygonWrap[index].style.width = this.waitPolygonAndText[index].polygon.width / config.screenOffset() + 'px'
-      this.waitPolygonWrap[index].style.height = this.waitPolygonAndText[index].polygon.height / config.screenOffset() + 'px'
-
-      if (config.spliceIndexArr.indexOf(index) != -1) { return }
-      // 添加到picture, 如果没有被拼合过就添加到html
-      this.picture.appendChild(polygon)
-      this.picture.appendChild(text)
+      this.waitPolygonWrap[index].style.top = this.waitPolygon[index].y / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.left = this.waitPolygon[index].x / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.width = this.waitPolygon[index].width / config.screenOffset() + 'px'
+      this.waitPolygonWrap[index].style.height = this.waitPolygon[index].height / config.screenOffset() + 'px'
     })
   }
 
@@ -197,17 +187,19 @@ class Game {
 
     if (!this.guidePolygon) {
       let guidePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
-      guidePolygon.setAttribute('points', this.waitPolygonAndText[0].polygon.getPointsToString())
-      guidePolygon.setAttribute('style', `fill:${this.waitPolygonAndText[0].polygon.color};`)
+      guidePolygon.setAttribute('points', this.waitPolygon[0].getPointsToString())
+      guidePolygon.setAttribute('style', `fill:${this.waitPolygon[0].color};`)
       this.picture.appendChild(guidePolygon)
       this.guidePolygon = new Polygon(guidePolygon)
+      this.guidePolygon.fill()
+      this.guidePolygon.showHideNumbering('hidden')
     }
 
-    this.startImg.style.top = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() + 'px'
-    this.startImg.style.left = (this.waitPolygonAndText[0].polygon.x + 30) / config.screenOffset() + 'px'
+    this.startImg.style.top = (this.waitPolygon[0].y + 45) / config.screenOffset() + 'px'
+    this.startImg.style.left = (this.waitPolygon[0].x + 30) / config.screenOffset() + 'px'
 
-    const distance = (this.waitPolygonAndText[0].polygon.y - this.polygonArr[0].y) / config.screenOffset()  // px
-    const startY = (this.waitPolygonAndText[0].polygon.y + 45) / config.screenOffset() // px
+    const distance = (this.waitPolygon[0].y - this.polygonArr[0].y) / config.screenOffset()  // px
+    const startY = (this.waitPolygon[0].y + 45) / config.screenOffset() // px
     const len = 40 // 时长1s，每20ms一次，共50次
     const stageY = distance / len // 每次运动stage个距离
 
@@ -255,7 +247,7 @@ class Game {
    */
   moveActivePolygon (offsetX, offsetY, index) {
     index = index === undefined ? this.currDraggableNum : index
-    this.waitPolygonAndText[index].polygon.move(offsetX, offsetY)
+    this.waitPolygon[index].move(offsetX, offsetY)
   }
 
   /**
@@ -263,12 +255,11 @@ class Game {
    */
   collisionDetection () {
     let currPolygon = this.polygonArr[this.currDraggableNum]
-    let polygonActive = this.waitPolygonAndText[this.currDraggableNum].polygon
+    let polygonActive = this.waitPolygon[this.currDraggableNum]
     
     if (Util.rectCollisioDetection(currPolygon, polygonActive)) {
-      currPolygon.polygonDom.setAttribute('style', `stroke:none;fill:${currPolygon.color};`)  // 涂色
-      this.picture.removeChild(this.textIndexDomArr[this.currDraggableNum]) // 删除编号
-      this.picture.removeChild(this.waitPolygonAndText[this.currDraggableNum].polygon.polygonDom)  // 删除拖动的polygon
+      currPolygon.fill()
+      this.picture.removeChild(polygonActive.polygonDom)  // 删除拖动的polygon
       this.showStageAnimation()
       this.audio.play({ name: 'success' })
 
@@ -279,7 +270,7 @@ class Game {
 
       // reset
       this.moveActivePolygon(0, 100)
-      this.waitPolygonAndText[this.currDraggableNum].text.style.visibility = 'visible'
+      polygonActive.showHideNumbering('visible')
     }
   }
 

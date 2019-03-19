@@ -53,8 +53,23 @@ class Game {
       config.gameState = 'playing'
       this.guide.stop()
     }
-
+    document.onmousedown = (e) => { // pc
+      if (config.gameState === 'playing') { return }
+      config.gameState = 'playing'
+      this.guide.stop()
+    }
+    
     document.ontouchend = (e) => {
+      this.isDraggable = false
+      this.collisionDetection()
+      if (config.spliceIndexArr.length !== 0) { return }
+      config.gameState = 'startBefore'
+      this.guide.play()
+    }
+
+    document.onmouseup = (e) => {
+      this.isDraggable = false
+      this.collisionDetection()
       if (config.spliceIndexArr.length !== 0) { return }
       config.gameState = 'startBefore'
       this.guide.play()
@@ -70,6 +85,16 @@ class Game {
       // 鼠标偏移量 * svg相对于屏幕的缩放比 = polygon相对于初始坐标的偏移量
       this.moveActivePolygon(offsetX * config.screenOffset(), offsetY * config.screenOffset())
     }
+
+    document.onmousemove = (e) => {
+      if (!this.isDraggable) {
+        return false
+      }
+      let offsetX = e.pageX - this.mouseStartX
+      let offsetY = e.pageY - this.mouseStartY
+      // // 鼠标偏移量 * svg相对于屏幕的缩放比 = polygon相对于初始坐标的偏移量
+      this.moveActivePolygon(offsetX * config.screenOffset(), offsetY * config.screenOffset())
+    }
     
     this.waitPolygonWrap.forEach((item, index) => {
       item.ontouchstart = (e) => {
@@ -83,9 +108,15 @@ class Game {
         this.moveActivePolygon(0, 0)
       }
 
-      item.ontouchend = () => {
-        this.isDraggable = false
-        this.collisionDetection()
+      item.onmousedown = (e) => {
+        this.isDraggable = true
+        this.currDraggableNum = index
+
+        this.mouseStartX = e.pageX
+        this.mouseStartY = e.pageY
+
+        Spirit.waitPolygon[index].showHideNumbering('hidden')  // 隐藏编号
+        this.moveActivePolygon(0, 0)
       }
     })
   }
@@ -239,7 +270,7 @@ class Game {
     })
 
     setTimeout(() => {
-      this.downloadWrapHand.src = this.startImg.src
+      this.downloadWrapHand.src = document.querySelector('.start img').src
       this.downloadBtn[1].src = this.downloadBtn[0].src
       this.end.classList.add('active')
     }, 1000)

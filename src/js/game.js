@@ -60,16 +60,22 @@ class Game {
     }
     
     document.ontouchend = (e) => {
-      this.isDraggable = false
-      this.collisionDetection()
+      if (this.isDraggable) {
+        this.isDraggable = false
+        this.collisionDetection()
+      } 
+      
       if (config.spliceIndexArr.length !== 0) { return }
       config.gameState = 'startBefore'
       this.guide.play()
     }
 
     document.onmouseup = (e) => {
-      this.isDraggable = false
-      this.collisionDetection()
+      if (this.isDraggable) {
+        this.isDraggable = false
+        this.collisionDetection()
+      }
+      
       if (config.spliceIndexArr.length !== 0) { return }
       config.gameState = 'startBefore'
       this.guide.play()
@@ -214,6 +220,7 @@ class Game {
     if (Util.rectCollisioDetection(currPolygon, polygonActive)) {
       currPolygon.fill()
       Stage.picture.removeChild(polygonActive.polygonDom)  // 删除拖动的polygon
+      this.waitPolygonWrap[this.currDraggableNum].style.display = 'none'
       this.showStageAnimation()
       this.audio.play({ name: 'success' })
 
